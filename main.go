@@ -7,15 +7,21 @@ import (
 )
 
 func home(w http.ResponseWriter, resp *http.Request) {
-	if t, err := template.ParseFiles("index.htm"); err == nil {
-		t.Execute(w, nil)
-	}
+	tpl["/"].Execute(w, nil)
 	log.Println(resp.Header["User-Agent"])
 }
 
+var tpl map[string]*template.Template
+var err error
+
 func main() {
 	log.Println("Hello Toomore")
+	tpl = make(map[string]*template.Template)
+
 	http.HandleFunc("/", home)
+	if tpl["/"], err = template.ParseFiles("index.htm"); err != nil {
+		log.Fatal("No template")
+	}
 	if err := http.ListenAndServe(":59122", nil); err != nil {
 		log.Fatal(err)
 	}
