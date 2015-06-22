@@ -3,11 +3,14 @@ package main
 import (
 	"log"
 	"net/http"
+	"text/template"
 )
 
 func home(w http.ResponseWriter, resp *http.Request) {
-	log.Println(resp)
-	w.Write([]byte("In Home"))
+	if t, err := template.ParseFiles("index.htm"); err == nil {
+		t.Execute(w, nil)
+	}
+	log.Println(resp.Header["User-Agent"])
 }
 
 func main() {
