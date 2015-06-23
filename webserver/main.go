@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/md5"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -16,7 +18,11 @@ func login(w http.ResponseWriter, resp *http.Request) {
 	if resp.Method == "POST" {
 		resp.ParseForm()
 		if resp.FormValue("email") != "" && resp.FormValue("pwd") != "" {
-			log.Println(resp.PostForm)
+			//log.Println(resp.PostForm)
+			hashpwd := md5.Sum([]byte(resp.FormValue("pwd")))
+			if hashkey == fmt.Sprintf("%x", hashpwd) {
+				log.Println("Password Right!")
+			}
 			w.Write([]byte("In POST"))
 		} else {
 			http.Redirect(w, resp, "/", http.StatusSeeOther)
@@ -26,8 +32,12 @@ func login(w http.ResponseWriter, resp *http.Request) {
 	}
 }
 
-var tpl map[string]*template.Template
-var err error
+const hashkey = "f9007add8286e2cb912d44cff34ac179"
+
+var (
+	err error
+	tpl map[string]*template.Template
+)
 
 func main() {
 	log.Println("Hello Toomore")
