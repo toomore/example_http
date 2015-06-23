@@ -9,6 +9,7 @@ import (
 func home(w http.ResponseWriter, resp *http.Request) {
 	tpl["/"].Execute(w, nil)
 	log.Println(resp.Header["User-Agent"])
+	log.Println(resp.FormValue("q"))
 }
 
 var tpl map[string]*template.Template
