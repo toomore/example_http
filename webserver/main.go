@@ -60,16 +60,25 @@ var (
 	tpl map[string]*template.Template
 )
 
+func wrapper(httpFunc func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, resp *http.Request) {
+		log.Println("In wrapper", resp.UserAgent())
+		httpFunc(w, resp)
+	}
+}
+
 func main() {
 	log.Println("Hello Toomore")
 	tpl = make(map[string]*template.Template)
 
-	http.HandleFunc("/", home)
-	http.HandleFunc("/login", login)
+	http.HandleFunc("/", wrapper(home))
+	http.HandleFunc("/login", wrapper(login))
+
 	// template.ParseFiles need func.
 	if tpl["/"], err = template.ParseFiles("./template/base.html", "./template/index.html"); err != nil {
 		log.Fatal("No template", err)
 	}
+
 	if err := http.ListenAndServe(":59122", nil); err != nil {
 		log.Fatal(err)
 	}
