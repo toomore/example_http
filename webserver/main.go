@@ -6,7 +6,12 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strings"
+
+	"github.com/toomore/example_http/webserver/session"
 )
+
+var Session = session.New([]byte("toomore"))
 
 func home(w http.ResponseWriter, resp *http.Request) {
 	tpl["/"].Execute(w, nil)
@@ -20,7 +25,7 @@ func makeSession(value string, resp *http.Request) *http.Cookie {
 		Name:     "session",
 		Value:    value,
 		Path:     "/",
-		Domain:   resp.Host,
+		Domain:   strings.Split(resp.Host, ":")[0],
 		HttpOnly: true,
 		//Expires: time.Now().Add(time.Duration(expires) * time.Second),
 	}
@@ -29,11 +34,14 @@ func makeSession(value string, resp *http.Request) *http.Cookie {
 func login(w http.ResponseWriter, resp *http.Request) {
 	if resp.Method == "POST" {
 		resp.ParseForm()
+		Session.Set("age", "30")
+		log.Printf("%+v", Session.Hashvalues)
 		if resp.FormValue("email") != "" && resp.FormValue("pwd") != "" {
 			//log.Println(resp.PostForm)
 			hashpwd := md5.Sum([]byte(resp.FormValue("pwd")))
 			if hashkey == fmt.Sprintf("%x", hashpwd) {
 				http.SetCookie(w, makeSession("name=toomore", resp))
+				Session.SetCookie(w, resp)
 				log.Println("Password Right!")
 			}
 			w.Write([]byte("In POST"))
