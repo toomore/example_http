@@ -12,6 +12,18 @@ func home(w http.ResponseWriter, resp *http.Request) {
 	tpl["/"].Execute(w, nil)
 	log.Println(resp.Header["User-Agent"])
 	log.Println(resp.FormValue("q"))
+	log.Println(resp.Cookie("session"))
+}
+
+func makeSession(value string, resp *http.Request) *http.Cookie {
+	return &http.Cookie{
+		Name:     "session",
+		Value:    value,
+		Path:     "/",
+		Domain:   resp.Host,
+		HttpOnly: true,
+		//Expires: time.Now().Add(time.Duration(expires) * time.Second),
+	}
 }
 
 func login(w http.ResponseWriter, resp *http.Request) {
@@ -21,6 +33,7 @@ func login(w http.ResponseWriter, resp *http.Request) {
 			//log.Println(resp.PostForm)
 			hashpwd := md5.Sum([]byte(resp.FormValue("pwd")))
 			if hashkey == fmt.Sprintf("%x", hashpwd) {
+				http.SetCookie(w, makeSession("name=toomore", resp))
 				log.Println("Password Right!")
 			}
 			w.Write([]byte("In POST"))
