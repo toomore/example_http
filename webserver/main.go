@@ -14,8 +14,17 @@ const loginpwd = "f9007add8286e2cb912d44cff34ac179"
 
 var sessionkey = []byte("toomore")
 
+type outputdata struct {
+	User string
+}
+
 func index(w http.ResponseWriter, resp *http.Request) {
-	tpl["/"].Execute(w, nil)
+	var Session = session.New(sessionkey, w, resp)
+	var result outputdata
+	if Session.Get("user") != "" {
+		result.User = Session.Get("user")
+	}
+	tpl["/"].Execute(w, result)
 	log.Println(resp.Header["User-Agent"])
 	log.Println(resp.FormValue("q"))
 	log.Println(resp.Cookie("session"))
