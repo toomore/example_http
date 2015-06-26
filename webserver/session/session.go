@@ -37,3 +37,13 @@ func (s *Session) SetCookie(w http.ResponseWriter, resp *http.Request) {
 	code, msg := s.Hashvalues.Encode()
 	http.SetCookie(w, makeSession(fmt.Sprintf("%s|%s", code, msg), resp))
 }
+
+func (s *Session) Parse(w http.ResponseWriter, resp *http.Request) {
+	if rawcookie, err := resp.Cookie("session"); err == nil {
+		cookies := strings.Split(rawcookie.String()[8:], "|")
+		if err := s.Hashvalues.Decode([]byte(cookies[0]), []byte(cookies[1])); err != nil {
+			s.Set("", "")
+			s.SetCookie(w, resp)
+		}
+	}
+}
