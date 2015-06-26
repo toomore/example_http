@@ -11,6 +11,8 @@ import (
 	"github.com/toomore/example_http/webserver/session"
 )
 
+const hashkey = "f9007add8286e2cb912d44cff34ac179"
+
 var sessionkey = []byte("toomore")
 
 func home(w http.ResponseWriter, resp *http.Request) {
@@ -34,15 +36,14 @@ func makeSession(value string, resp *http.Request) *http.Cookie {
 func login(w http.ResponseWriter, resp *http.Request) {
 	if resp.Method == "POST" {
 		resp.ParseForm()
-		var Session = session.New(sessionkey)
-		Session.Parse(w, resp)
-		Session.Set("age", "30")
-		log.Printf("%+v", Session.Hashvalues)
 		if resp.FormValue("email") != "" && resp.FormValue("pwd") != "" {
 			//log.Println(resp.PostForm)
 			hashpwd := md5.Sum([]byte(resp.FormValue("pwd")))
 			if hashkey == fmt.Sprintf("%x", hashpwd) {
-				Session.SetCookie(w, resp)
+				var Session = session.New(sessionkey, w, resp)
+				Session.Set("user", resp.FormValue("email"))
+				Session.Save()
+				log.Printf("%+v", Session.Hashvalues)
 				log.Println("Password Right!")
 			}
 			w.Write([]byte("In POST"))
@@ -54,8 +55,6 @@ func login(w http.ResponseWriter, resp *http.Request) {
 	}
 }
 
-const hashkey = "f9007add8286e2cb912d44cff34ac179"
-
 var (
 	err error
 	tpl map[string]*template.Template
@@ -64,8 +63,7 @@ var (
 func wrapper(httpFunc func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, resp *http.Request) {
 		log.Println("In wrapper", resp.UserAgent())
-		var Session = session.New(sessionkey)
-		Session.Parse(w, resp)
+		var Session = session.New(sessionkey, w, resp)
 		log.Printf(">>> %+v", Session.Hashvalues)
 		httpFunc(w, resp)
 	}
