@@ -42,6 +42,10 @@ func (s *Session) Set(key, value string) {
 	s.Hashvalues.Set(key, value)
 }
 
+func (s *Session) Get(key string) string {
+	return s.Hashvalues.Get(key)
+}
+
 func (s *Session) Save() {
 	code, msg := s.Hashvalues.Encode()
 	http.SetCookie(s.w, makeSession(joinCodeMsg(code, msg), s.resp))

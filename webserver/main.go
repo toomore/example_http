@@ -14,7 +14,7 @@ const loginpwd = "f9007add8286e2cb912d44cff34ac179"
 
 var sessionkey = []byte("toomore")
 
-func home(w http.ResponseWriter, resp *http.Request) {
+func index(w http.ResponseWriter, resp *http.Request) {
 	tpl["/"].Execute(w, nil)
 	log.Println(resp.Header["User-Agent"])
 	log.Println(resp.FormValue("q"))
@@ -34,7 +34,7 @@ func login(w http.ResponseWriter, resp *http.Request) {
 				log.Printf("%+v", Session.Hashvalues)
 				log.Println("Password Right!")
 			}
-			w.Write([]byte("In POST"))
+			http.Redirect(w, resp, "/", http.StatusSeeOther)
 		} else {
 			http.Redirect(w, resp, "/", http.StatusSeeOther)
 		}
@@ -48,11 +48,14 @@ var (
 	tpl map[string]*template.Template
 )
 
-func wrapper(httpFunc func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+func needLogin(httpFunc func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, resp *http.Request) {
 		log.Println("In wrapper", resp.UserAgent())
 		var Session = session.New(sessionkey, w, resp)
-		log.Printf(">>> %+v", Session.Hashvalues)
+		log.Printf(">>>[%s] %+v", Session.Get("user"), Session.Hashvalues)
+		if Session.Get("user") == "" {
+			http.Redirect(w, resp, "/", http.StatusTemporaryRedirect)
+		}
 		httpFunc(w, resp)
 	}
 }
@@ -61,8 +64,8 @@ func main() {
 	log.Println("Hello Toomore")
 	tpl = make(map[string]*template.Template)
 
-	http.HandleFunc("/", wrapper(home))
-	http.HandleFunc("/login", wrapper(login))
+	http.HandleFunc("/", index)
+	http.HandleFunc("/login", login)
 
 	// template.ParseFiles need func.
 	if tpl["/"], err = template.ParseFiles("./template/base.html", "./template/index.html"); err != nil {
