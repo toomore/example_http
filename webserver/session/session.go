@@ -8,9 +8,12 @@ import (
 )
 import "github.com/toomore/hashvalues"
 
+const sessionName = "session"
+const sessionSplitSign = "|"
+
 func makeSession(value string, resp *http.Request) *http.Cookie {
 	return &http.Cookie{
-		Name:     "session",
+		Name:     sessionName,
 		Value:    value,
 		Path:     "/",
 		Domain:   strings.Split(resp.Host, ":")[0],
@@ -41,15 +44,24 @@ func (s *Session) Set(key, value string) {
 
 func (s *Session) Save() {
 	code, msg := s.Hashvalues.Encode()
-	http.SetCookie(s.w, makeSession(fmt.Sprintf("%s|%s", code, msg), s.resp))
+	http.SetCookie(s.w, makeSession(joinCodeMsg(code, msg), s.resp))
 }
 
 func (s *Session) parse() {
-	if rawcookie, err := s.resp.Cookie("session"); err == nil {
-		cookies := strings.Split(rawcookie.String()[8:], "|")
-		if err := s.Hashvalues.Decode([]byte(cookies[0]), []byte(cookies[1])); err != nil {
+	if rawcookie, err := s.resp.Cookie(sessionName); err == nil {
+		code, msg := splitCodeMsg(rawcookie.String())
+		if err := s.Hashvalues.Decode([]byte(code), []byte(msg)); err != nil {
 			s.Set("", "")
 			s.Save()
 		}
 	}
+}
+
+func splitCodeMsg(rawcookie string) (code, msg string) {
+	cookies := strings.Split(rawcookie[len(sessionName)+1:], sessionSplitSign)
+	return cookies[0], cookies[1]
+}
+
+func joinCodeMsg(code, msg []byte) string {
+	return fmt.Sprintf("%s%s%s", code, sessionSplitSign, msg)
 }
