@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/toomore/hashvalues"
 )
-import "github.com/toomore/hashvalues"
 
 const sessionName = "session"
 const sessionSplitSign = "|"
@@ -18,7 +19,6 @@ func makeSession(value string, resp *http.Request) *http.Cookie {
 		Path:     "/",
 		Domain:   strings.Split(resp.Host, ":")[0],
 		HttpOnly: true,
-		//Expires: time.Now().Add(time.Duration(expires) * time.Second),
 	}
 }
 

@@ -10,7 +10,7 @@ import (
 	"github.com/toomore/example_http/webserver/session"
 )
 
-const hashkey = "f9007add8286e2cb912d44cff34ac179"
+const loginpwd = "f9007add8286e2cb912d44cff34ac179"
 
 var sessionkey = []byte("toomore")
 
@@ -27,7 +27,7 @@ func login(w http.ResponseWriter, resp *http.Request) {
 		if resp.FormValue("email") != "" && resp.FormValue("pwd") != "" {
 			//log.Println(resp.PostForm)
 			hashpwd := md5.Sum([]byte(resp.FormValue("pwd")))
-			if hashkey == fmt.Sprintf("%x", hashpwd) {
+			if loginpwd == fmt.Sprintf("%x", hashpwd) {
 				var Session = session.New(sessionkey, w, resp)
 				Session.Set("user", resp.FormValue("email"))
 				Session.Save()
