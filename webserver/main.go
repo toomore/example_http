@@ -43,6 +43,33 @@ func board(w http.ResponseWriter, resp *http.Request) {
 	tpl["/board"].Execute(w, result)
 }
 
+func sendmail(w http.ResponseWriter, resp *http.Request) {
+	switch resp.Method {
+	case "GET":
+		var Session = session.New(sessionkey, w, resp)
+		var result outputdata
+		if Session.Get("user") != "" {
+			result.User = Session.Get("user")
+		}
+		tpl["/sendmail"].Execute(w, result)
+	case "POST":
+		resp.ParseForm()
+
+		if file, h, err := resp.FormFile("template"); err == nil {
+			defer file.Close()
+			if h.Header.Get("Content-Type") == "text/html" {
+				log.Println(h.Filename, h.Header.Get("Content-Type"), file)
+			}
+		}
+		if file, h, err := resp.FormFile("csv"); err == nil {
+			defer file.Close()
+			if h.Header.Get("Content-Type") == "text/csv" {
+				log.Println(h.Filename, h.Header.Get("Content-Type"), file)
+			}
+		}
+	}
+}
+
 func login(w http.ResponseWriter, resp *http.Request) {
 	if resp.Method == "POST" {
 		resp.ParseForm()
@@ -89,6 +116,7 @@ func main() {
 	http.HandleFunc("/", index)
 	http.HandleFunc("/login", login)
 	http.HandleFunc("/board", needLogin(board))
+	http.HandleFunc("/sendmail", needLogin(sendmail))
 
 	// template.ParseFiles need func.
 	if tpl["/"], err = template.ParseFiles("./template/base.html", "./template/index.html"); err != nil {
@@ -96,6 +124,9 @@ func main() {
 	}
 
 	if tpl["/board"], err = template.ParseFiles("./template/base.html", "./template/board.html"); err != nil {
+		log.Fatal("No template", err)
+	}
+	if tpl["/sendmail"], err = template.ParseFiles("./template/base.html", "./template/sendmail.html"); err != nil {
 		log.Fatal("No template", err)
 	}
 
