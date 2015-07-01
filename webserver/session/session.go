@@ -63,7 +63,10 @@ func (s *Session) parse() {
 
 func splitCodeMsg(rawcookie string) (code, msg string) {
 	cookies := strings.Split(rawcookie[len(sessionName)+1:], sessionSplitSign)
-	return cookies[0], cookies[1]
+	if len(cookies) == 2 {
+		return cookies[0], cookies[1]
+	}
+	return code, msg
 }
 
 func joinCodeMsg(code, msg []byte) string {
