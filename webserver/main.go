@@ -30,6 +30,10 @@ func index(w http.ResponseWriter, resp *http.Request) {
 	log.Println(resp.Cookie("session"))
 }
 
+func board(w http.ResponseWriter, resp *http.Request) {
+	tpl["/board"].Execute(w, nil)
+}
+
 func login(w http.ResponseWriter, resp *http.Request) {
 	if resp.Method == "POST" {
 		resp.ParseForm()
@@ -43,7 +47,7 @@ func login(w http.ResponseWriter, resp *http.Request) {
 				log.Printf("%+v", Session.Hashvalues)
 				log.Println("Password Right!")
 			}
-			http.Redirect(w, resp, "/", http.StatusSeeOther)
+			http.Redirect(w, resp, "/board", http.StatusSeeOther)
 		} else {
 			http.Redirect(w, resp, "/", http.StatusSeeOther)
 		}
@@ -75,9 +79,14 @@ func main() {
 
 	http.HandleFunc("/", index)
 	http.HandleFunc("/login", login)
+	http.HandleFunc("/board", needLogin(board))
 
 	// template.ParseFiles need func.
 	if tpl["/"], err = template.ParseFiles("./template/base.html", "./template/index.html"); err != nil {
+		log.Fatal("No template", err)
+	}
+
+	if tpl["/board"], err = template.ParseFiles("./template/base.html", "./template/board.html"); err != nil {
 		log.Fatal("No template", err)
 	}
 
