@@ -19,6 +19,10 @@ type outputdata struct {
 }
 
 func index(w http.ResponseWriter, resp *http.Request) {
+	if resp.URL.Path != "/" {
+		http.NotFound(w, resp)
+		return
+	}
 	var Session = session.New(sessionkey, w, resp)
 	var result outputdata
 	if Session.Get("user") != "" {
@@ -31,7 +35,12 @@ func index(w http.ResponseWriter, resp *http.Request) {
 }
 
 func board(w http.ResponseWriter, resp *http.Request) {
-	tpl["/board"].Execute(w, nil)
+	var Session = session.New(sessionkey, w, resp)
+	var result outputdata
+	if Session.Get("user") != "" {
+		result.User = Session.Get("user")
+	}
+	tpl["/board"].Execute(w, result)
 }
 
 func login(w http.ResponseWriter, resp *http.Request) {
