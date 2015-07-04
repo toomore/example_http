@@ -7,6 +7,7 @@ import (
 	"os"
 	"runtime"
 	"sync"
+	"time"
 
 	"github.com/toomore/simpleaws/sqs"
 	"github.com/toomore/simpleaws/utils"
@@ -17,9 +18,13 @@ var AWSKEY = flag.String("awskey", os.Getenv("AWSKEY"), "AWSKEY")
 var SQSRegion = flag.String("sqsregion", "", "AWS SQS region")
 var SQSURL = flag.String("sqsurl", "", "AWS SQS queue URL")
 var SQSReceiverMax = flag.Int64("sqsrecmax", 10, "AWS SQS receiver max")
+var retry = flag.Int64("retry", 5, "Get queue in zero to retry times")
 var sqsObject *sqs.SQS
 
 func getQmsg(rmax int64) {
+	var zerotimes int64
+	var delta int64
+Send:
 	if msg, err := sqsObject.Receive(rmax); err == nil {
 		var wg sync.WaitGroup
 		wg.Add(len(msg.Messages))
@@ -37,7 +42,20 @@ func getQmsg(rmax int64) {
 			}
 		}
 		wg.Wait()
+		if zerotimes < *retry {
+			if len(msg.Messages) == 0 {
+				zerotimes++
+				log.Printf("In retry check. [%d]", zerotimes)
+				delta = 1 << uint64(zerotimes)
+				log.Printf("Retry in %d seconds.", delta)
+				time.Sleep(time.Duration(delta) * time.Second)
+			} else {
+				zerotimes = 0
+			}
+			goto Send
+		}
 	}
+	log.Println("Done")
 }
 
 func main() {
