@@ -8,12 +8,13 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/mail"
+	"net/url"
 	"os"
 
 	"github.com/toomore/example_http/webserver/session"
 	"github.com/toomore/example_http/webserver/utils"
-	"github.com/toomore/simpleaws/ses"
+	"github.com/toomore/simpleaws/s3"
+	"github.com/toomore/simpleaws/sqs"
 )
 
 const loginpwd = "f9007add8286e2cb912d44cff34ac179"
@@ -63,37 +64,36 @@ func sendmail(w http.ResponseWriter, resp *http.Request) {
 
 		tplfile, h, err := resp.FormFile("template")
 		var tpldata []byte
+		var filekey string
 		if err == nil {
 			defer tplfile.Close()
 			if h.Header.Get("Content-Type") == "text/html" {
 				tpldata, _ = ioutil.ReadAll(tplfile)
 				log.Println(h.Filename, h.Header.Get("Content-Type"), tplfile)
+				s3Object := s3.New(os.Getenv("AWSID"), os.Getenv("AWSKEY"),
+					"us-east-1", "toomore-aet")
+				filekey = fmt.Sprintf("tpl/%s", h.Filename)
+				log.Println(s3Object.Put(filekey, bytes.NewReader(tpldata)))
 			}
 		}
 
 		csvfile, h, err := resp.FormFile("csv")
-		var csvmap []utils.CSVData
+		var csvValues []url.Values
 		if err == nil {
 			defer csvfile.Close()
 			if h.Header.Get("Content-Type") == "text/csv" {
-				csvmap, _ = utils.CSV2map(csvfile)
-				log.Println(csvmap)
+				var sqsObject = sqs.New(os.Getenv("AWSID"), os.Getenv("AWSKEY"),
+					"ap-northeast-1",
+					"https://sqs.ap-northeast-1.amazonaws.com/271756324461/test_toomore")
+				csvValues = utils.Map2ValuesMust(utils.CSV2map(csvfile))
+				for _, v := range csvValues {
+					v.Set("tplpath", filekey)
+					sqsObject.Send(v.Encode())
+				}
 				log.Println(h.Filename, h.Header.Get("Content-Type"))
 			}
 		}
 
-		var tpl *template.Template
-		if tpl, err = template.New("tpl").Parse(string(tpldata)); err == nil {
-			sesObject := ses.New(os.Getenv("AWSID"), os.Getenv("AWSKEY"), "us-east-1", &mail.Address{Name: resp.FormValue("sendername"), Address: resp.FormValue("senderemail")})
-			for i, v := range csvmap {
-				var tplcontent bytes.Buffer
-				tpl.Execute(&tplcontent, csvmap[i])
-				log.Println(v)
-				log.Println(sesObject.Send([]*mail.Address{&mail.Address{Name: v["name"], Address: v["email"]}}, resp.FormValue("subject"), tplcontent.String()))
-			}
-		} else {
-			log.Println(err)
-		}
 	}
 }
 

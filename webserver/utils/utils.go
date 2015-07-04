@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/csv"
 	"io"
+	"net/url"
 )
 
 type CSVData map[string]string
@@ -25,4 +26,19 @@ func CSV2map(r io.Reader) ([]CSVData, error) {
 		}
 	}
 	return csvmap, err
+}
+
+func Map2Values(m []CSVData) []url.Values {
+	r := make([]url.Values, len(m))
+	for i, d := range m {
+		r[i] = url.Values{}
+		for k, v := range d {
+			r[i].Set(k, v)
+		}
+	}
+	return r
+}
+
+func Map2ValuesMust(m []CSVData, err error) []url.Values {
+	return Map2Values(m)
 }
