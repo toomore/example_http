@@ -6,6 +6,18 @@
             <div class="panel-body bg-success">
                 <form action="/sendmail" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
+                        <label for="sendername">Sender Name</label>
+                        <input id="sendername" name="sendername" type="text" class="form-control" placeholder="sender name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="senderemail">Sender Email</label>
+                        <input id="senderemail" name="senderemail" type="email" class="form-control" placeholder="sender email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Subject</label>
+                        <input id="subject" name="subject" type="text" class="form-control" placeholder="subject" required>
+                    </div>
+                    <div class="form-group">
                         <label for="template">Template</label>
                         <input id="template" name="template" type="file" required>
                     </div>

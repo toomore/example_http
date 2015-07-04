@@ -8,9 +8,12 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/mail"
+	"os"
 
 	"github.com/toomore/example_http/webserver/session"
 	"github.com/toomore/example_http/webserver/utils"
+	"github.com/toomore/simpleaws/ses"
 )
 
 const loginpwd = "f9007add8286e2cb912d44cff34ac179"
@@ -67,6 +70,7 @@ func sendmail(w http.ResponseWriter, resp *http.Request) {
 				log.Println(h.Filename, h.Header.Get("Content-Type"), tplfile)
 			}
 		}
+
 		csvfile, h, err := resp.FormFile("csv")
 		var csvmap []utils.CSVData
 		if err == nil {
@@ -78,13 +82,18 @@ func sendmail(w http.ResponseWriter, resp *http.Request) {
 			}
 		}
 
-		var tplcontent bytes.Buffer
-		if tpl, err := template.New("tpl").Parse(string(tpldata)); err == nil {
-			tpl.Execute(&tplcontent, csvmap[0])
+		var tpl *template.Template
+		if tpl, err = template.New("tpl").Parse(string(tpldata)); err == nil {
+			sesObject := ses.New(os.Getenv("AWSID"), os.Getenv("AWSKEY"), "us-east-1", &mail.Address{Name: resp.FormValue("sendername"), Address: resp.FormValue("senderemail")})
+			for i, v := range csvmap {
+				var tplcontent bytes.Buffer
+				tpl.Execute(&tplcontent, csvmap[i])
+				log.Println(v)
+				log.Println(sesObject.Send([]*mail.Address{&mail.Address{Name: v["name"], Address: v["email"]}}, resp.FormValue("subject"), tplcontent.String()))
+			}
 		} else {
 			log.Println(err)
 		}
-		log.Println(tplcontent)
 	}
 }
 
