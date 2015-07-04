@@ -2,14 +2,13 @@ package main
 
 import (
 	"crypto/md5"
-	"encoding/csv"
 	"fmt"
 	"html/template"
-	"io"
 	"log"
 	"net/http"
 
 	"github.com/toomore/example_http/webserver/session"
+	"github.com/toomore/example_http/webserver/utils"
 )
 
 const loginpwd = "f9007add8286e2cb912d44cff34ac179"
@@ -45,8 +44,6 @@ func board(w http.ResponseWriter, resp *http.Request) {
 	tpl["/board"].Execute(w, result)
 }
 
-type csvData map[string]string
-
 func sendmail(w http.ResponseWriter, resp *http.Request) {
 	switch resp.Method {
 	case "GET":
@@ -68,31 +65,11 @@ func sendmail(w http.ResponseWriter, resp *http.Request) {
 		if file, h, err := resp.FormFile("csv"); err == nil {
 			defer file.Close()
 			if h.Header.Get("Content-Type") == "text/csv" {
-				log.Println(csv2map(file))
+				log.Println(utils.CSV2map(file))
 				log.Println(h.Filename, h.Header.Get("Content-Type"))
 			}
 		}
 	}
-}
-
-func csv2map(r io.Reader) ([]csvData, error) {
-	var (
-		csvalldata [][]string
-		csvmap     []csvData
-		err        error
-	)
-	if csvalldata, err = csv.NewReader(r).ReadAll(); err == nil {
-		csvmap = make([]csvData, len(csvalldata)-1)
-		for i, v := range csvalldata[1:len(csvalldata)] {
-			csvmap[i] = make(csvData)
-			for mi, mv := range csvalldata[0] {
-				if mv != "" {
-					csvmap[i][mv] = v[mi]
-				}
-			}
-		}
-	}
-	return csvmap, err
 }
 
 func login(w http.ResponseWriter, resp *http.Request) {
