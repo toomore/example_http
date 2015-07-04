@@ -88,6 +88,8 @@ func sendmail(w http.ResponseWriter, resp *http.Request) {
 				csvValues = utils.Map2ValuesMust(utils.CSV2map(csvfile))
 				for _, v := range csvValues {
 					v.Set("tplpath", filekey)
+					v.Set("sendername", resp.FormValue("sendername"))
+					v.Set("senderemail", resp.FormValue("senderemail"))
 					sqsObject.Send(v.Encode())
 				}
 				log.Println(h.Filename, h.Header.Get("Content-Type"))
