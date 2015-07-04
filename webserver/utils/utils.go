@@ -5,18 +5,18 @@ import (
 	"io"
 )
 
-type csvData map[string]string
+type CSVData map[string]string
 
-func CSV2map(r io.Reader) ([]csvData, error) {
+func CSV2map(r io.Reader) ([]CSVData, error) {
 	var (
 		csvalldata [][]string
-		csvmap     []csvData
+		csvmap     []CSVData
 		err        error
 	)
 	if csvalldata, err = csv.NewReader(r).ReadAll(); err == nil {
-		csvmap = make([]csvData, len(csvalldata)-1)
+		csvmap = make([]CSVData, len(csvalldata)-1)
 		for i, v := range csvalldata[1:len(csvalldata)] {
-			csvmap[i] = make(csvData)
+			csvmap[i] = make(CSVData)
 			for mi, mv := range csvalldata[0] {
 				if mv != "" {
 					csvmap[i][mv] = v[mi]

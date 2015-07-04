@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"crypto/md5"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -56,19 +58,33 @@ func sendmail(w http.ResponseWriter, resp *http.Request) {
 	case "POST":
 		resp.ParseForm()
 
-		if file, h, err := resp.FormFile("template"); err == nil {
-			defer file.Close()
+		tplfile, h, err := resp.FormFile("template")
+		var tpldata []byte
+		if err == nil {
+			defer tplfile.Close()
 			if h.Header.Get("Content-Type") == "text/html" {
-				log.Println(h.Filename, h.Header.Get("Content-Type"), file)
+				tpldata, _ = ioutil.ReadAll(tplfile)
+				log.Println(h.Filename, h.Header.Get("Content-Type"), tplfile)
 			}
 		}
-		if file, h, err := resp.FormFile("csv"); err == nil {
-			defer file.Close()
+		csvfile, h, err := resp.FormFile("csv")
+		var csvmap []utils.CSVData
+		if err == nil {
+			defer csvfile.Close()
 			if h.Header.Get("Content-Type") == "text/csv" {
-				log.Println(utils.CSV2map(file))
+				csvmap, _ = utils.CSV2map(csvfile)
+				log.Println(csvmap)
 				log.Println(h.Filename, h.Header.Get("Content-Type"))
 			}
 		}
+
+		var tplcontent bytes.Buffer
+		if tpl, err := template.New("tpl").Parse(string(tpldata)); err == nil {
+			tpl.Execute(&tplcontent, csvmap[0])
+		} else {
+			log.Println(err)
+		}
+		log.Println(tplcontent)
 	}
 }
 
