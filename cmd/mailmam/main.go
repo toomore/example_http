@@ -33,6 +33,7 @@ var (
 	s3Object       *s3.S3
 	sesObject      *ses.SES
 	sqsObject      *sqs.SQS
+	tplcache       map[string]string
 )
 
 func getQmsg(rmax int64) {
@@ -52,23 +53,35 @@ Send:
 					go func(i int, bodymap url.Values, rh *string) {
 						defer wg.Done()
 						runtime.Gosched()
-						if s3ouput, err := s3Object.Get(bodymap.Get("tplpath")); err == nil {
-							s3ouputdata, _ := ioutil.ReadAll(s3ouput.Body)
-							if tpl, err := template.New("tpl").Parse(string(s3ouputdata)); err == nil {
-								var tplcontent bytes.Buffer
-								tpl.Execute(&tplcontent, bodymap)
-								log.Println(sesObject.Send(
-									&mail.Address{
-										Name:    bodymap.Get("sendername"),
-										Address: bodymap.Get("senderemail"),
-									},
-									[]*mail.Address{
-										&mail.Address{
-											Name:    bodymap.Get("name"),
-											Address: bodymap.Get("email")},
-									},
-									bodymap.Get("subject"), tplcontent.String()))
+						var s3ouputbody string
+						var s3ouputbyte []byte
+						var ok bool
+						if s3ouputbody, ok = tplcache[bodymap.Get("tplpath")]; !ok {
+							log.Println("No cache")
+							if s3ouput, err := s3Object.Get(bodymap.Get("tplpath")); err == nil {
+								s3ouputbyte, _ = ioutil.ReadAll(s3ouput.Body)
+								tplcache[bodymap.Get("tplpath")] = string(s3ouputbyte)
+								s3ouputbody = tplcache[bodymap.Get("tplpath")]
+								log.Println("save cache", s3ouput.Body)
+							} else {
+								return
 							}
+
+						}
+						if tpl, err := template.New("tpl").Parse(s3ouputbody); err == nil {
+							var tplcontent bytes.Buffer
+							tpl.Execute(&tplcontent, bodymap)
+							log.Println(sesObject.Send(
+								&mail.Address{
+									Name:    bodymap.Get("sendername"),
+									Address: bodymap.Get("senderemail"),
+								},
+								[]*mail.Address{
+									&mail.Address{
+										Name:    bodymap.Get("name"),
+										Address: bodymap.Get("email")},
+								},
+								bodymap.Get("subject"), tplcontent.String()))
 						}
 						log.Println(i, bodymap)
 						sqsObject.Delete(rh)
@@ -91,6 +104,10 @@ Send:
 		}
 	}
 	log.Println("Done")
+}
+
+func init() {
+	tplcache = make(map[string]string)
 }
 
 func main() {
