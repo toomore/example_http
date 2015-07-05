@@ -90,6 +90,7 @@ func sendmail(w http.ResponseWriter, resp *http.Request) {
 					v.Set("tplpath", filekey)
 					v.Set("sendername", resp.FormValue("sendername"))
 					v.Set("senderemail", resp.FormValue("senderemail"))
+					v.Set("subject", resp.FormValue("subject"))
 					sqsObject.Send(v.Encode())
 				}
 				log.Println(h.Filename, h.Header.Get("Content-Type"))
