@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/toomore/simpleaws/ses"
 	"github.com/toomore/simpleaws/sqs"
 	"github.com/toomore/simpleaws/utils"
 )
@@ -16,11 +17,13 @@ import (
 var (
 	AWSID          = flag.String("awsid", os.Getenv("AWSID"), "AWSID")
 	AWSKEY         = flag.String("awskey", os.Getenv("AWSKEY"), "AWSKEY")
+	SESRegion      = flag.String("sesregion", "", "AWS SES region")
 	SQSReceiverMax = flag.Int64("sqsrecmax", 10, "AWS SQS receiver max")
 	SQSRegion      = flag.String("sqsregion", "", "AWS SQS region")
 	SQSURL         = flag.String("sqsurl", "", "AWS SQS queue URL")
 	ncpu           = flag.Int("ncpu", runtime.NumCPU(), "指定 CPU 數量，預設為實際 CPU 數量")
 	retry          = flag.Int64("retry", 5, "Get queue in zero to retry times")
+	sesObject      *ses.SES
 	sqsObject      *sqs.SQS
 )
 
@@ -72,8 +75,13 @@ func main() {
 	if *AWSID == "" || *AWSID == "" {
 		log.Fatal("Lost AWSID or AWSKEY")
 	}
-	if *SQSRegion != "" && *SQSURL != "" {
-		sqsObject = sqs.New(*AWSID, *AWSKEY, *SQSRegion, *SQSURL)
+	if *SQSRegion == "" || *SQSURL == "" {
+		log.Fatal("Lost SQSRegion or SQSURL")
 	}
+	if *SESRegion == "" {
+		log.Fatal("Lost SESRegion")
+	}
+	sqsObject = sqs.New(*AWSID, *AWSKEY, *SQSRegion, *SQSURL)
+	sesObject = ses.New(*AWSID, *AWSKEY, *SESRegion)
 	getQmsg(*SQSReceiverMax)
 }
