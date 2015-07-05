@@ -53,20 +53,22 @@ Send:
 					go func(i int, bodymap url.Values, rh *string) {
 						defer wg.Done()
 						runtime.Gosched()
+
 						var s3ouputbody string
 						var s3ouputbyte []byte
 						var ok bool
-						if s3ouputbody, ok = tplcache[bodymap.Get("tplpath")]; !ok {
+						var tplpath = bodymap.Get("tplpath")
+
+						if s3ouputbody, ok = tplcache[tplpath]; !ok {
 							log.Println("No cache")
-							if s3ouput, err := s3Object.Get(bodymap.Get("tplpath")); err == nil {
+							if s3ouput, err := s3Object.Get(tplpath); err == nil {
 								s3ouputbyte, _ = ioutil.ReadAll(s3ouput.Body)
-								tplcache[bodymap.Get("tplpath")] = string(s3ouputbyte)
-								s3ouputbody = tplcache[bodymap.Get("tplpath")]
+								tplcache[tplpath] = string(s3ouputbyte)
+								s3ouputbody = tplcache[tplpath]
 								log.Println("save cache", s3ouput.Body)
 							} else {
 								return
 							}
-
 						}
 						if tpl, err := template.New("tpl").Parse(s3ouputbody); err == nil {
 							var tplcontent bytes.Buffer
