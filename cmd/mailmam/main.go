@@ -13,6 +13,7 @@ import (
 	"text/template"
 	"time"
 
+	webutils "github.com/toomore/example_http/webserver/utils"
 	"github.com/toomore/simpleaws/s3"
 	"github.com/toomore/simpleaws/ses"
 	"github.com/toomore/simpleaws/sqs"
@@ -74,7 +75,7 @@ Send:
 						}
 						if tpl, err := template.New("tpl").Parse(s3ouputbody); err == nil {
 							var tplcontent bytes.Buffer
-							tpl.Execute(&tplcontent, bodymap)
+							tpl.Execute(&tplcontent, webutils.Values2Map(bodymap))
 							log.Println(sesObject.Send(
 								&mail.Address{
 									Name:    bodymap.Get("sendername"),
@@ -90,7 +91,13 @@ Send:
 						log.Println(i, bodymap)
 						sqsObject.Delete(rh)
 					}(i, bodymap, m.ReceiptHandle)
+				} else {
+					log.Println(err)
+					wg.Done()
 				}
+			} else {
+				log.Println(err)
+				wg.Done()
 			}
 		}
 		wg.Wait()
