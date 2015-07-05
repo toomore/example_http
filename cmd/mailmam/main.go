@@ -57,7 +57,17 @@ Send:
 							if tpl, err := template.New("tpl").Parse(string(s3ouputdata)); err == nil {
 								var tplcontent bytes.Buffer
 								tpl.Execute(&tplcontent, bodymap)
-								log.Println(sesObject.Send(&mail.Address{Name: bodymap.Get("sendername"), Address: bodymap.Get("senderemail")}, []*mail.Address{&mail.Address{Name: bodymap.Get("name"), Address: bodymap.Get("email")}}, bodymap.Get("subject"), tplcontent.String()))
+								log.Println(sesObject.Send(
+									&mail.Address{
+										Name:    bodymap.Get("sendername"),
+										Address: bodymap.Get("senderemail"),
+									},
+									[]*mail.Address{
+										&mail.Address{
+											Name:    bodymap.Get("name"),
+											Address: bodymap.Get("email")},
+									},
+									bodymap.Get("subject"), tplcontent.String()))
 							}
 						}
 						log.Println(i, bodymap)
