@@ -39,6 +39,14 @@ func Map2Values(m []CSVData) []url.Values {
 	return r
 }
 
+func Values2Map(values url.Values) map[string]string {
+	result := make(map[string]string)
+	for k, v := range values {
+		result[k] = v[0]
+	}
+	return result
+}
+
 func Map2ValuesMust(m []CSVData, err error) []url.Values {
 	return Map2Values(m)
 }
