@@ -54,18 +54,20 @@ Send:
 						defer wg.Done()
 						runtime.Gosched()
 
-						var s3ouputbody string
-						var s3ouputbyte []byte
 						var ok bool
+						var s3ouputbody string
 						var tplpath = bodymap.Get("tplpath")
 
 						if s3ouputbody, ok = tplcache[tplpath]; !ok {
 							log.Println("No cache")
 							if s3ouput, err := s3Object.Get(tplpath); err == nil {
-								s3ouputbyte, _ = ioutil.ReadAll(s3ouput.Body)
-								tplcache[tplpath] = string(s3ouputbyte)
-								s3ouputbody = tplcache[tplpath]
-								log.Println("save cache", s3ouput.Body)
+								if s3ouputbyte, err := ioutil.ReadAll(s3ouput.Body); err == nil {
+									tplcache[tplpath] = string(s3ouputbyte)
+									s3ouputbody = tplcache[tplpath]
+									log.Println("save cache", s3ouput.Body)
+								} else {
+									return
+								}
 							} else {
 								return
 							}
