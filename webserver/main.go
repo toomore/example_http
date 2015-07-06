@@ -19,7 +19,15 @@ import (
 
 const loginpwd = "f9007add8286e2cb912d44cff34ac179"
 
-var sessionkey = []byte("toomore")
+var (
+	AWSID      = os.Getenv("AWSID")
+	AWSKEY     = os.Getenv("AWSKEY")
+	S3Bucket   = "toomore-aet"
+	S3Region   = "us-east-1"
+	SQSRegion  = "ap-northeast-1"
+	SQSURL     = "https://sqs.ap-northeast-1.amazonaws.com/271756324461/test_toomore"
+	sessionkey = []byte("toomore")
+)
 
 type outputdata struct {
 	User string
@@ -70,8 +78,7 @@ func sendmail(w http.ResponseWriter, resp *http.Request) {
 			if h.Header.Get("Content-Type") == "text/html" {
 				tpldata, _ = ioutil.ReadAll(tplfile)
 				log.Println(h.Filename, h.Header.Get("Content-Type"), tplfile)
-				s3Object := s3.New(os.Getenv("AWSID"), os.Getenv("AWSKEY"),
-					"us-east-1", "toomore-aet")
+				s3Object := s3.New(AWSID, AWSKEY, S3Region, S3Bucket)
 				filekey = fmt.Sprintf("tpl/%s", h.Filename)
 				log.Println(s3Object.Put(filekey, bytes.NewReader(tpldata)))
 			}
@@ -82,9 +89,7 @@ func sendmail(w http.ResponseWriter, resp *http.Request) {
 		if err == nil {
 			defer csvfile.Close()
 			if h.Header.Get("Content-Type") == "text/csv" {
-				var sqsObject = sqs.New(os.Getenv("AWSID"), os.Getenv("AWSKEY"),
-					"ap-northeast-1",
-					"https://sqs.ap-northeast-1.amazonaws.com/271756324461/test_toomore")
+				var sqsObject = sqs.New(AWSID, AWSKEY, SQSRegion, SQSURL)
 				csvValues = utils.Map2ValuesMust(utils.CSV2map(csvfile))
 				var queue = make([]string, len(csvValues))
 				for i, v := range csvValues {
