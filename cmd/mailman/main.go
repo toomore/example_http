@@ -1,5 +1,38 @@
-// Mailman
+// Mailman - To get queue from SQS and send by SES.
 //
+/*
+Install:
+
+	go install github.com/toomore/example_http/cmd/mailman
+
+Usage:
+
+	mailman [flags]
+
+The flags are:
+
+	-awsid
+			AWSID (Default env: AWSID)
+	-awskey
+			AWSKEY (Default env: AWSKEY)
+	-s3bucket
+			S3 bucket (Default env: S3BUCKET)
+	-s3region
+			S3 bucket region (Default env: S3REGION)
+	-sesregion
+			SES region (Default env: SESREGION)
+	-sqsrecmax
+			SQS receive max messages limit (Default: 10)
+	-sqsregion
+			SQS region (Default env: SQSSQSREGIONN)
+	-sqsurl
+			SQS URL (Default env: SQSURLL)
+	-ncpu
+			CPU nums (Default: CPU nums)
+	-retry
+			Get SQS retry times (Default: 5)
+
+*/
 package main
 
 import (
