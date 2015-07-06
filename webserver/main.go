@@ -86,13 +86,15 @@ func sendmail(w http.ResponseWriter, resp *http.Request) {
 					"ap-northeast-1",
 					"https://sqs.ap-northeast-1.amazonaws.com/271756324461/test_toomore")
 				csvValues = utils.Map2ValuesMust(utils.CSV2map(csvfile))
-				for _, v := range csvValues {
+				var queue = make([]string, len(csvValues))
+				for i, v := range csvValues {
 					v.Set("tplpath", filekey)
 					v.Set("sendername", resp.FormValue("sendername"))
 					v.Set("senderemail", resp.FormValue("senderemail"))
 					v.Set("subject", resp.FormValue("subject"))
-					sqsObject.Send(v.Encode())
+					queue[i] = v.Encode()
 				}
+				sqsObject.SendBatch(queue)
 				log.Println(h.Filename, h.Header.Get("Content-Type"))
 			}
 		}
