@@ -1,3 +1,5 @@
+// Mailman
+//
 package main
 
 import (
