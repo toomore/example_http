@@ -23,12 +23,12 @@ import (
 var (
 	AWSID          = flag.String("awsid", os.Getenv("AWSID"), "AWSID")
 	AWSKEY         = flag.String("awskey", os.Getenv("AWSKEY"), "AWSKEY")
-	S3Bucket       = flag.String("s3bucket", "", "AWS S3 bucket")
-	S3Region       = flag.String("s3region", "", "AWS S3 region")
-	SESRegion      = flag.String("sesregion", "", "AWS SES region")
+	S3Bucket       = flag.String("s3bucket", os.Getenv("S3BUCKET"), "AWS S3 bucket")
+	S3Region       = flag.String("s3region", os.Getenv("S3REGION"), "AWS S3 region")
+	SESRegion      = flag.String("sesregion", os.Getenv("SESREGION"), "AWS SES region")
 	SQSReceiverMax = flag.Int64("sqsrecmax", 10, "AWS SQS receiver max")
-	SQSRegion      = flag.String("sqsregion", "", "AWS SQS region")
-	SQSURL         = flag.String("sqsurl", "", "AWS SQS queue URL")
+	SQSRegion      = flag.String("sqsregion", os.Getenv("SQSREGION"), "AWS SQS region")
+	SQSURL         = flag.String("sqsurl", os.Getenv("SQSURL"), "AWS SQS queue URL")
 	ncpu           = flag.Int("ncpu", runtime.NumCPU(), "指定 CPU 數量，預設為實際 CPU 數量")
 	retry          = flag.Int64("retry", 5, "Get queue in zero to retry times")
 	s3Object       *s3.S3
