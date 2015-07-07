@@ -2,6 +2,6 @@
 
 go build
 
-docker build -t toomore/mailman
+docker build -t toomore/mailman .
 
 rm -rf ./mailman
