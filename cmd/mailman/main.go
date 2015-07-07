@@ -26,7 +26,7 @@ The flags are:
 	-sqsregion
 			SQS region (Default env: SQSSQSREGIONN)
 	-sqsurl
-			SQS URL (Default env: SQSURLL)
+			SQS URL (Default env: SQSURL)
 	-ncpu
 			CPU nums (Default: CPU nums)
 	-retry
