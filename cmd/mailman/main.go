@@ -24,7 +24,7 @@ The flags are:
 	-sqsrecmax
 			SQS receive max messages limit (Default: 10)
 	-sqsregion
-			SQS region (Default env: SQSSQSREGIONN)
+			SQS region (Default env: SQSREGION)
 	-sqsurl
 			SQS URL (Default env: SQSURL)
 	-ncpu
