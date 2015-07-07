@@ -21,3 +21,51 @@ To-Do
 - [webserver] template 檔案編檔機制
 - [webserver] 登出清除 session
 - [tracker] 放入 tracker feeds.
+
+AWS IAM Policy
+---------------
+
+For AWS IAM policy inline setting.
+
+```json
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "s3",
+                "Effect": "Allow",
+                "Action": [
+                    "s3:PutObject",
+                    "s3:GetObject"
+                ],
+                "Resource": [
+                    "*"
+                ]
+            },
+            {
+                "Sid": "ses",
+                "Effect": "Allow",
+                "Action": [
+                    "ses:SendEmail",
+                    "ses:SendRawEmail"
+                ],
+                "Resource": [
+                    "*"
+                ]
+            },
+            {
+                "Sid": "sqs",
+                "Effect": "Allow",
+                "Action": [
+                    "sqs:SendMessage",
+                    "sqs:ReceiveMessage",
+                    "sqs:DeleteMessage",
+                    "sqs:PurgeQueue"
+                ],
+                "Resource": [
+                    "*"
+                ]
+            }
+        ]
+    }
+```
