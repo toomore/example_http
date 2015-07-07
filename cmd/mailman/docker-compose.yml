@@ -1,10 +1,10 @@
 mailman:
     image: toomore/mailman 
     environment:
-        - AWSID: ""
-        - AWSKEY: ""
-        - S3BUCKET: ""
-        - S3REGION: ""
-        - SESREGION: ""
-        - SQSREGION: ""
-        - SQSURL: ""
+        AWSID: ""
+        AWSKEY: ""
+        S3BUCKET: ""
+        S3REGION: ""
+        SESREGION: ""
+        SQSREGION: ""
+        SQSURL: ""
