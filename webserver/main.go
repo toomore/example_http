@@ -9,24 +9,12 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 
+	"github.com/toomore/example_http/webserver/config"
 	"github.com/toomore/example_http/webserver/session"
 	"github.com/toomore/example_http/webserver/utils"
 	"github.com/toomore/simpleaws/s3"
 	"github.com/toomore/simpleaws/sqs"
-)
-
-const loginpwd = "f9007add8286e2cb912d44cff34ac179"
-
-var (
-	AWSID      = os.Getenv("AWSID")
-	AWSKEY     = os.Getenv("AWSKEY")
-	S3Bucket   = "toomore-aet"
-	S3Region   = "us-east-1"
-	SQSRegion  = "ap-northeast-1"
-	SQSURL     = "https://sqs.ap-northeast-1.amazonaws.com/271756324461/test_toomore"
-	sessionkey = []byte("toomore")
 )
 
 type outputdata struct {
@@ -38,7 +26,7 @@ func index(w http.ResponseWriter, resp *http.Request) {
 		http.NotFound(w, resp)
 		return
 	}
-	var Session = session.New(sessionkey, w, resp)
+	var Session = session.New(config.SESSIONKEY, w, resp)
 	var result outputdata
 	if Session.Get("user") != "" {
 		result.User = Session.Get("user")
@@ -50,7 +38,7 @@ func index(w http.ResponseWriter, resp *http.Request) {
 }
 
 func board(w http.ResponseWriter, resp *http.Request) {
-	var Session = session.New(sessionkey, w, resp)
+	var Session = session.New(config.SESSIONKEY, w, resp)
 	var result outputdata
 	if Session.Get("user") != "" {
 		result.User = Session.Get("user")
@@ -61,7 +49,7 @@ func board(w http.ResponseWriter, resp *http.Request) {
 func sendmail(w http.ResponseWriter, resp *http.Request) {
 	switch resp.Method {
 	case "GET":
-		var Session = session.New(sessionkey, w, resp)
+		var Session = session.New(config.SESSIONKEY, w, resp)
 		var result outputdata
 		if Session.Get("user") != "" {
 			result.User = Session.Get("user")
@@ -78,7 +66,8 @@ func sendmail(w http.ResponseWriter, resp *http.Request) {
 			if h.Header.Get("Content-Type") == "text/html" {
 				tpldata, _ = ioutil.ReadAll(tplfile)
 				log.Println(h.Filename, h.Header.Get("Content-Type"), tplfile)
-				s3Object := s3.New(AWSID, AWSKEY, S3Region, S3Bucket)
+				s3Object := s3.New(config.AWSID, config.AWSKEY,
+					config.S3Region, config.S3Bucket)
 				filekey = fmt.Sprintf("tpl/%s", h.Filename)
 				log.Println(s3Object.Put(filekey, bytes.NewReader(tpldata)))
 			}
@@ -89,7 +78,8 @@ func sendmail(w http.ResponseWriter, resp *http.Request) {
 		if err == nil {
 			defer csvfile.Close()
 			if h.Header.Get("Content-Type") == "text/csv" {
-				var sqsObject = sqs.New(AWSID, AWSKEY, SQSRegion, SQSURL)
+				var sqsObject = sqs.New(config.AWSID, config.AWSKEY,
+					config.SQSRegion, config.SQSURL)
 				csvValues = utils.Map2ValuesMust(utils.CSV2map(csvfile))
 				var queue = make([]string, len(csvValues))
 				for i, v := range csvValues {
@@ -113,8 +103,8 @@ func login(w http.ResponseWriter, resp *http.Request) {
 		if resp.FormValue("email") != "" && resp.FormValue("pwd") != "" {
 			//log.Println(resp.PostForm)
 			hashpwd := md5.Sum([]byte(resp.FormValue("pwd")))
-			if loginpwd == fmt.Sprintf("%x", hashpwd) {
-				var Session = session.New(sessionkey, w, resp)
+			if config.LOGINPWD == fmt.Sprintf("%x", hashpwd) {
+				var Session = session.New(config.SESSIONKEY, w, resp)
 				Session.Set("user", resp.FormValue("email"))
 				Session.Save()
 				log.Printf("%+v", Session.Hashvalues)
@@ -137,7 +127,7 @@ var (
 func needLogin(httpFunc func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, resp *http.Request) {
 		log.Println("In wrapper", resp.UserAgent())
-		var Session = session.New(sessionkey, w, resp)
+		var Session = session.New(config.SESSIONKEY, w, resp)
 		log.Printf(">>>[%s] %+v", Session.Get("user"), Session.Hashvalues)
 		if Session.Get("user") == "" {
 			http.Redirect(w, resp, "/", http.StatusTemporaryRedirect)
