@@ -77,11 +77,12 @@ func sendmail(w http.ResponseWriter, resp *http.Request) {
 		var csvValues []url.Values
 		if err == nil {
 			defer csvfile.Close()
+			var queue []string
 			if h.Header.Get("Content-Type") == "text/csv" {
 				var sqsObject = sqs.New(config.AWSID, config.AWSKEY,
 					config.SQSRegion, config.SQSURL)
 				csvValues = utils.Map2ValuesMust(utils.CSV2map(csvfile))
-				var queue = make([]string, len(csvValues))
+				queue = make([]string, len(csvValues))
 				for i, v := range csvValues {
 					v.Set("tplpath", filekey)
 					v.Set("sendername", resp.FormValue("sendername"))
@@ -92,8 +93,8 @@ func sendmail(w http.ResponseWriter, resp *http.Request) {
 				sqsObject.SendBatch(queue)
 				log.Println(h.Filename, h.Header.Get("Content-Type"))
 			}
+			fmt.Fprintf(w, "template: %s, Nums: %d", filekey, len(queue))
 		}
-
 	}
 }
 

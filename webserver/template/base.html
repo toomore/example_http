@@ -23,8 +23,8 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="/">
-                        <i class="fa fa-check-square-o"></i> Example {{if .User}}<small>{{.User}}</small>{{end}}
+                    <a class="navbar-brand" href="{{if .User}}/board{{else}}/{{end}}">
+                        <i class="fa fa-envelope-o"></i> Example {{if .User}}<small>{{.User}}</small>{{end}}
                     </a>
                 </div>
                 <!-- Collect the nav links, forms, and other content for toggling -->
