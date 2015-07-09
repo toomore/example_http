@@ -37,6 +37,8 @@ func Run(address string) {
 	http.HandleFunc("/board", NeedLogin(Board))
 	http.HandleFunc("/sendmail", NeedLogin(Sendmail))
 
+	log.Printf("Address: %s\n", address)
+
 	if err := http.ListenAndServe(address, nil); err != nil {
 		log.Fatal(err)
 	}
