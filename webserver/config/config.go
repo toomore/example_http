@@ -3,7 +3,6 @@ package config
 import "os"
 
 const (
-	LOGINPWD  = "f9007add8286e2cb912d44cff34ac179"
 	S3Bucket  = "toomore-aet"
 	S3Region  = "us-east-1"
 	SQSRegion = "ap-northeast-1"
@@ -13,5 +12,6 @@ const (
 var (
 	AWSID      = os.Getenv("AWSID")
 	AWSKEY     = os.Getenv("AWSKEY")
-	SESSIONKEY = []byte("toomore")
+	LOGINPWD   = os.Getenv("LOGINPWD")
+	SESSIONKEY = []byte(os.Getenv("SESSIONKEY"))
 )
