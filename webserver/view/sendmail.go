@@ -1,10 +1,8 @@
 package view
 
 import (
-	"bytes"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -12,7 +10,6 @@ import (
 	"github.com/toomore/example_http/webserver/config"
 	"github.com/toomore/example_http/webserver/session"
 	"github.com/toomore/example_http/webserver/utils"
-	"github.com/toomore/simpleaws/s3"
 	"github.com/toomore/simpleaws/sqs"
 )
 
@@ -34,20 +31,22 @@ func Sendmail(w http.ResponseWriter, resp *http.Request) {
 	case "POST":
 		resp.ParseForm()
 
-		tplfile, h, err := resp.FormFile("template")
-		var tpldata []byte
+		_, h, _ := uploadTemplate(resp.FormFile("template"))
+		//var tpldata []byte
+		//var filekey string
+		//if err == nil {
+		//	defer tplfile.Close()
+		//	if h.Header.Get("Content-Type") == "text/html" {
+		//		tpldata, _ = ioutil.ReadAll(tplfile)
+		//		log.Println(h.Filename, h.Header.Get("Content-Type"), tplfile)
+		//		s3Object := s3.New(config.AWSID, config.AWSKEY,
+		//			config.S3Region, config.S3Bucket)
+		//		filekey = fmt.Sprintf("%s%s", config.S3Prefix, h.Filename)
+		//		log.Println(s3Object.Put(filekey, bytes.NewReader(tpldata)))
+		//	}
+		//}
 		var filekey string
-		if err == nil {
-			defer tplfile.Close()
-			if h.Header.Get("Content-Type") == "text/html" {
-				tpldata, _ = ioutil.ReadAll(tplfile)
-				log.Println(h.Filename, h.Header.Get("Content-Type"), tplfile)
-				s3Object := s3.New(config.AWSID, config.AWSKEY,
-					config.S3Region, config.S3Bucket)
-				filekey = fmt.Sprintf("tpl/%s", h.Filename)
-				log.Println(s3Object.Put(filekey, bytes.NewReader(tpldata)))
-			}
-		}
+		filekey = fmt.Sprintf("%s%s", config.S3Prefix, h.Filename)
 
 		csvfile, h, err := resp.FormFile("csv")
 		var csvValues []url.Values
