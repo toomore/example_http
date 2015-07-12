@@ -36,6 +36,8 @@ func Run(address string) {
 	http.HandleFunc("/login", Login)
 	http.HandleFunc("/board", NeedLogin(Board))
 	http.HandleFunc("/sendmail", NeedLogin(Sendmail))
+	http.HandleFunc("/campaign", NeedLogin(Campaign))
+	http.HandleFunc("/campaign/create", NeedLogin(Campaign))
 
 	log.Printf("Address: %s\n", address)
 

@@ -19,6 +19,7 @@ func init() {
 
 func Index(w http.ResponseWriter, resp *http.Request) {
 	if resp.URL.Path != "/" {
+		log.Println(resp.URL.Path)
 		http.NotFound(w, resp)
 		return
 	}
