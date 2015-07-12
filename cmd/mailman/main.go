@@ -96,9 +96,9 @@ Send:
 						var tplpath = bodymap.Get("tplpath")
 
 						if s3ouputbody, ok = tplcache[tplpath]; !ok {
+							log.Println("No cache")
 							mt.Lock()
 							if s3ouputbody, ok = tplcache[tplpath]; !ok {
-								log.Println("No cache")
 								if s3ouput, err := s3Object.Get(tplpath); err == nil {
 									if s3ouputbyte, err := ioutil.ReadAll(s3ouput.Body); err == nil {
 										tplcache[tplpath] = string(s3ouputbyte)
@@ -114,8 +114,8 @@ Send:
 									return
 								}
 							} else {
+								log.Println("Pass by cache.")
 								mt.Unlock()
-								return
 							}
 						}
 						if tpl, err := template.New("tpl").Parse(s3ouputbody); err == nil {
