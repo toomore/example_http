@@ -95,14 +95,20 @@ Send:
 						var s3ouputbody string
 						var tplpath = bodymap.Get("tplpath")
 
-						mt.Lock()
 						if s3ouputbody, ok = tplcache[tplpath]; !ok {
-							log.Println("No cache")
-							if s3ouput, err := s3Object.Get(tplpath); err == nil {
-								if s3ouputbyte, err := ioutil.ReadAll(s3ouput.Body); err == nil {
-									tplcache[tplpath] = string(s3ouputbyte)
-									s3ouputbody = tplcache[tplpath]
-									log.Printf("save cache: %+v", s3ouput.Body)
+							mt.Lock()
+							if s3ouputbody, ok = tplcache[tplpath]; !ok {
+								log.Println("No cache")
+								if s3ouput, err := s3Object.Get(tplpath); err == nil {
+									if s3ouputbyte, err := ioutil.ReadAll(s3ouput.Body); err == nil {
+										tplcache[tplpath] = string(s3ouputbyte)
+										s3ouputbody = tplcache[tplpath]
+										log.Printf("save cache: %+v", s3ouput.Body)
+										mt.Unlock()
+									} else {
+										mt.Unlock()
+										return
+									}
 								} else {
 									mt.Unlock()
 									return
@@ -112,7 +118,6 @@ Send:
 								return
 							}
 						}
-						mt.Unlock()
 						if tpl, err := template.New("tpl").Parse(s3ouputbody); err == nil {
 							var tplcontent bytes.Buffer
 							tpl.Execute(&tplcontent, webutils.Values2Map(bodymap))
