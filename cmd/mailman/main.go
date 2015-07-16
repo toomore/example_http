@@ -121,7 +121,7 @@ Send:
 						if tpl, err := template.New("tpl").Parse(s3ouputbody); err == nil {
 							var tplcontent bytes.Buffer
 							tpl.Execute(&tplcontent, webutils.Values2Map(bodymap))
-							log.Println(sesObject.Send(
+							if sendresult, err := sesObject.Send(
 								&mail.Address{
 									Name:    bodymap.Get("sendername"),
 									Address: bodymap.Get("senderemail"),
@@ -131,10 +131,13 @@ Send:
 										Name:    bodymap.Get("name"),
 										Address: bodymap.Get("email")},
 								},
-								bodymap.Get("subject"), tplcontent.String()))
+								bodymap.Get("subject"), tplcontent.String()); err == nil {
+								log.Println("[OK]", i, bodymap, sendresult)
+								sqsObject.Delete(rh)
+							} else {
+								log.Println("[Error]", i, bodymap, err)
+							}
 						}
-						log.Println(i, bodymap)
-						sqsObject.Delete(rh)
 					}(i, bodymap, m.ReceiptHandle)
 				} else {
 					log.Println(err)
